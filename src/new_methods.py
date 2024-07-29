@@ -1,4 +1,27 @@
+from utils import get_CP_estimate
+from bisect import bisect_left
 
+
+### HTLB+CP ###
+
+# method that calculates the full HTLB cautious calibration map for Clopper-Pearson
+def htlb_cp(binary_sequence, subsequence_length=1000, confidence=0.99):
+    lower_bounds = []
+
+    for i in range(1, len(binary_sequence) + 1):
+        if i < subsequence_length:
+            lower_bounds.append(0)
+        else:
+            subsequence = binary_sequence[i-subsequence_length:i]
+            nr_of_ones = sum(subsequence)
+            nr_of_zeros = len(subsequence) - nr_of_ones
+            assert len(subsequence) == subsequence_length
+            lb = get_CP_estimate(nr_of_zeros, nr_of_ones, confidence=confidence)
+            lower_bounds.append(lb)
+    return lower_bounds
+
+
+### HTLB+MAXCP ###
 
 # calculating max statistic knowing the positions of zeros in the current subsequence
 def calculate_max_statistic(positions_of_zeros, lb_map_fixed_fperc, min_size=2):
@@ -55,7 +78,7 @@ def get_max_statistic_lower_bound(seq, lb_map_fixed_perc, lb_map, win_min=100):
 
 
 # from whole sequence -> lower bound map
-def HTLB_MAXCP_cautious_calibration(binary_sequence, lb_map_fixed_perc, lb_map, window_size=2000, w_min=100):
+def htlb_maxcp(binary_sequence, lb_map_fixed_perc, lb_map, window_size=2000, w_min=100):
     lower_bound_map = []
 
     for i in range(1, len(binary_sequence) + 1):
