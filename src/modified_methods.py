@@ -41,7 +41,7 @@ def isobins_cp(sequence, conf=0.99):
     for group in iso_groups:
         ones = sum(group)
         zeros = len(group) - ones
-        lb = get_CP_estimate(zeros, ones, conf=conf)
+        lb = get_CP_estimate(zeros, ones, confidence=conf)
 
         # repeat the chosen bound len(group) times
         lower_bound_map += [lb]*len(group)
@@ -71,7 +71,7 @@ def rcir_cp(probs, sequence, d=0.7, credible_level=.99):
     for i in range(len(sequence_in_bins)):
         nr_of_ones = sum(sequence_in_bins[i])
         nr_of_zeros = len(sequence_in_bins[i]) - nr_of_ones
-        lb = get_CP_estimate(nr_of_zeros, nr_of_ones, conf=credible_level)
+        lb = get_CP_estimate(nr_of_zeros, nr_of_ones, confidence=credible_level)
         lb_values += [lb]*len(sequence_in_bins[i])
 
     return lb_values

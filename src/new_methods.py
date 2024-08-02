@@ -1,3 +1,4 @@
+import numpy as np
 from utils import get_CP_estimate
 from bisect import bisect_left
 
@@ -23,8 +24,8 @@ def htlb_cp(binary_sequence, subsequence_length=1000, confidence=0.99):
 
 ### HTLB+MAXCP ###
 
-# calculating max statistic knowing the positions of zeros in the current subsequence
-def calculate_max_statistic(positions_of_zeros, lb_map_fixed_fperc, min_size=2):
+# calculating max CP statistic efficiently knowing the positions of zeros in the current subsequence
+def calculate_max_CP(positions_of_zeros, lb_map_fixed_fperc, min_size=2):
     
     max_g = -1
     nr_of_zeros = 0
@@ -58,7 +59,8 @@ def calculate_max_statistic(positions_of_zeros, lb_map_fixed_fperc, min_size=2):
     return max_g
 
 
-# from calculated statistic to corresponding lower bound
+# This helper method maps the calculated statistic value to the corresponding lower bound from the lower bound map
+# it might give slightly imprecise results if the given lb_map does not have enough precalculated points.
 def map_value_to_lower_bound_imprecise(value, lb_map):
     keys = list(lb_map.keys())
     ind = bisect_left(keys, value)
@@ -69,15 +71,17 @@ def map_value_to_lower_bound_imprecise(value, lb_map):
 
 
 # from subsequence -> statistic -> lower bound
-def get_max_statistic_lower_bound(seq, lb_map_fixed_perc, lb_map, win_min=100):
+# This helper metbod calculates the statistic value (max CP) for a given subsequence
+# and returns the corresponging lower bound from the lower bound map
+def get_max_CP_lower_bound(seq, lb_map_fixed_perc, lb_map, win_min=100):
     zero_indices = np.where(np.array(seq) == 0)[0]
     positions_of_zeros = [-1] + list(zero_indices) + [len(seq)]
-    statistic = calculate_max_statistic(positions_of_zeros, lb_map_fixed_perc, min_size=win_min)
+    statistic = calculate_max_CP(positions_of_zeros, lb_map_fixed_perc, min_size=win_min)
     lower_bound = map_value_to_lower_bound_imprecise(statistic, lb_map)
     return lower_bound
 
 
-# from whole sequence -> lower bound map
+# This function calculates the cautious calibration map for the HTLB+MAXCP method.
 def htlb_maxcp(binary_sequence, lb_map_fixed_perc, lb_map, window_size=2000, w_min=100):
     lower_bound_map = []
 
@@ -86,6 +90,6 @@ def htlb_maxcp(binary_sequence, lb_map_fixed_perc, lb_map, window_size=2000, w_m
             lower_bound_map.append(0)
         else:
             window = binary_sequence[i-window_size:i]
-            lb = get_max_statistic_lower_bound(window, lb_map_fixed_perc, lb_map, win_min=w_min)
+            lb = get_max_CP_lower_bound(window, lb_map_fixed_perc, lb_map, win_min=w_min)
             lower_bound_map.append(lb)
     return lower_bound_map
